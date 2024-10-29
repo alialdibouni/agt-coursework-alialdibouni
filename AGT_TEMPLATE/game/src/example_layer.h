@@ -1,5 +1,7 @@
 #pragma once
 #include <engine.h>
+#include "player.h"
+#include <engine/entities/shapes/heightmap.h>
 
 class pickup;
 
@@ -15,6 +17,9 @@ public:
 
 private:
 	void check_bounce();
+	void update_ground_positions();
+
+	bool								m_show_menu = true;
 
 	engine::ref<engine::skybox>			m_skybox{};
 	engine::ref<engine::game_object>	m_terrain{};
@@ -22,12 +27,15 @@ private:
 	engine::ref<engine::game_object>	m_tree{};
 	engine::ref<engine::game_object>	m_ball{};
 	engine::ref<engine::game_object>	m_mannequin{};
+	engine::ref<engine::game_object>	m_zombie{};
 	engine::ref<pickup> m_pickup{};
-	engine::ref<engine::game_object>	m_tetrahedron{};
-	engine::ref<engine::material>		m_tetrahedron_material{};
+	engine::ref<engine::game_object>    m_pentagon{};
+	engine::ref<pickup> m_pentagon_pickup{};
+	player								m_player{};
 
 	engine::ref<engine::material>		m_material{};
 	engine::ref<engine::material>		m_mannequin_material{};
+	engine::ref<engine::material>		m_zombie_material{};
 
 	engine::DirectionalLight            m_directionalLight;
 
@@ -40,4 +48,8 @@ private:
 
     engine::orthographic_camera       m_2d_camera; 
     engine::perspective_camera        m_3d_camera;
+
+	engine::ref<engine::heightmap>	  m_heightmap;
+
+	float							  m_physical_terrain_height = 0.5f;
 };

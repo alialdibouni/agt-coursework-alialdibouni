@@ -135,11 +135,13 @@
   <ItemGroup>
     <ClInclude Include="src\example_layer.h" />
     <ClInclude Include="src\pickup.h" />
+    <ClInclude Include="src\player.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\example_layer.cpp" />
     <ClCompile Include="src\game.cpp" />
     <ClCompile Include="src\pickup.cpp" />
+    <ClCompile Include="src\player.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\engine\engine.vcxproj">

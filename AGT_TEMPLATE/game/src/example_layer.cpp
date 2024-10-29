@@ -11,9 +11,6 @@
 example_layer::example_layer() 
     :m_2d_camera(-1.6f, 1.6f, -0.9f, 0.9f), 
     m_3d_camera((float)engine::application::window().width(), (float)engine::application::window().height())
-
-
-
 {
     // Hide the mouse and lock it inside the window
     //engine::input::anchor_mouse(true);
@@ -56,6 +53,9 @@ example_layer::example_layer()
 	m_mannequin_material = engine::material::create(1.0f, glm::vec3(0.5f, 0.5f, 0.5f),
 		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
 
+	m_zombie_material = engine::material::create(1.0f, glm::vec3(0.5f, 0.5f, 0.5f),
+		glm::vec3(0.5f, 0.5f, 0.5f), glm::vec3(0.5f, 0.5f, 0.5f), 1.0f);
+
 
 	// Skybox texture from http://www.vwall.it/wp-content/plugins/canvasio3dpro/inc/resource/cubeMaps/
 	m_skybox = engine::skybox::create(50.f,
@@ -74,7 +74,6 @@ example_layer::example_layer()
 	engine::ref<engine::skinned_mesh> m_skinned_mesh = engine::skinned_mesh::create("assets/models/animated/warrior/warrior_animation.fbx");
 	m_skinned_mesh->switch_root_movement(false);
 	m_skinned_mesh->set_textures(mannequin_textures);
-
 	engine::game_object_properties mannequin_props;
 	mannequin_props.animated_mesh = m_skinned_mesh;
 	mannequin_props.scale = glm::vec3(0.7f);
@@ -83,16 +82,49 @@ example_layer::example_layer()
 	mannequin_props.type = 0;
 	mannequin_props.bounding_shape = m_skinned_mesh->size() / 2.f * mannequin_props.scale.x;
 	m_mannequin = engine::game_object::create(mannequin_props);
+	m_player.initialise(m_mannequin);
+
+	// Zombie from https://sketchfab.com/3d-models/zombie-73ef58af341e46afba1da53366ed79cf
+	std::vector<engine::ref<engine::texture_2d>> zombie_textures;
+	zombie_textures.push_back(engine::texture_2d::create("assets/textures/zombie/Zombie.png", false));
+	zombie_textures.push_back(engine::texture_2d::create("assets/textures/zombie/Zombie_ao.png", false));
+	zombie_textures.push_back(engine::texture_2d::create("assets/textures/zombie/zombie_emission.png", false));
+	zombie_textures.push_back(engine::texture_2d::create("assets/textures/zombie/Zombie_gloss.png", false));
+	zombie_textures.push_back(engine::texture_2d::create("assets/textures/zombie/Zombie_nm.png", false));
+	engine::ref<engine::skinned_mesh> m_zombie_mesh = engine::skinned_mesh::create("assets/models/animated/zombie/Zombie@Z_Idle.fbx");
+	m_zombie_mesh->switch_root_movement(false);
+	m_zombie_mesh->set_textures(zombie_textures);
+	engine::game_object_properties zombie_props;
+	zombie_props.animated_mesh = m_zombie_mesh;
+	zombie_props.scale = glm::vec3(0.01f);
+	zombie_props.position = glm::vec3(-1.0f, 0.5f, -2.0f);
+	//zombie_props.rotation_amount = glm::radians(90.f);
+	//zombie_props.rotation_axis = glm::vec3(-1.f, 0.f, 0.f);
+	zombie_props.textures = zombie_textures;
+	zombie_props.type = 0;
+	zombie_props.bounding_shape = m_zombie_mesh->size() / 2.f * zombie_props.scale.x;	
+	m_zombie = engine::game_object::create(zombie_props);
 
 	// Load the terrain texture and create a terrain mesh. Create a terrain object. Set its properties
-	std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/terrain.bmp", false) };
-	engine::ref<engine::terrain> terrain_shape = engine::terrain::create(100.f, 0.5f, 100.f);
+	/*std::vector<engine::ref<engine::texture_2d>> terrain_textures = { engine::texture_2d::create("assets/textures/terrain.bmp",  false) };
+	engine::ref<engine::terrain> terrain_shape = engine::terrain::create(100.f, 0.f, 100.f);
 	engine::game_object_properties terrain_props;
 	terrain_props.meshes = { terrain_shape->mesh() };
 	terrain_props.textures = terrain_textures;
 	terrain_props.is_static = true;
 	terrain_props.type = 0;
 	terrain_props.bounding_shape = glm::vec3(100.f, 0.5f, 100.f);
+	terrain_props.restitution = 0.92f;
+	m_terrain = engine::game_object::create(terrain_props);*/
+
+
+	m_heightmap = engine::heightmap::create("assets/textures/heightmap.jpg", "assets/textures/Terrain.bmp", 100.f, 100.f, glm::vec3(0.f, 0.f, 0.f), 10.f);
+	engine::game_object_properties terrain_props;
+	terrain_props.meshes = { m_heightmap->mesh() };
+	terrain_props.textures = { m_heightmap->texture() };
+	terrain_props.is_static = true;
+	terrain_props.type = 0;
+	terrain_props.bounding_shape = glm::vec3(m_heightmap->terrain_size().x, m_physical_terrain_height, m_heightmap->terrain_size().y);
 	terrain_props.restitution = 0.92f;
 	m_terrain = engine::game_object::create(terrain_props);
 
@@ -129,24 +161,7 @@ example_layer::example_layer()
 	sphere_props.mass = 0.000001f;
 	m_ball = engine::game_object::create(sphere_props);
 
-	// Create a tetrahedron object, set its properties
-	m_tetrahedron_material = engine::material::create(32.0f,
-		glm::vec3(1.0f, 0.5f, 0.0f),
-		glm::vec3(1.0f, 0.5f, 0.0f),
-		glm::vec3(0.5f, 0.5f, 0.5f),
-		0.3f); //Set the transparency
-	std::vector<glm::vec3> tetrahedron_vertices;
-	tetrahedron_vertices.push_back(glm::vec3(0.f, 10.f, 0.f));	//0
-	tetrahedron_vertices.push_back(glm::vec3(0.f, 0.f, 10.f));	//1
-	tetrahedron_vertices.push_back(glm::vec3(-10.f, 0.f, -10.f));	//2
-	tetrahedron_vertices.push_back(glm::vec3(10.f, 0.f, -10.f));	//3
-
-
-	engine::ref<engine::tetrahedron> tetrahedron_shape = engine::tetrahedron::create(tetrahedron_vertices);
-	engine::game_object_properties tetrahedron_props;
-	tetrahedron_props.position = { 0.f, 0.5f, -20.f };
-	tetrahedron_props.meshes = { tetrahedron_shape->mesh() };
-	m_tetrahedron = engine::game_object::create(tetrahedron_props);
+	
 
 	// Medkit texture from https://www.textures.com/download/manmadeboxes0007/105116
 	engine::ref<engine::cuboid> pickup_shape = engine::cuboid::create(glm::vec3(0.5f), false);
@@ -158,6 +173,14 @@ example_layer::example_layer()
 	m_pickup = pickup::create(pickup_props);
 	m_pickup->init();
 
+	// Create a 3d pentagon object, set its properties
+	engine::ref<engine::pentagon> pentagon_shape = engine::pentagon::create(0.5f, 0.2f);
+	engine::game_object_properties pentagon_props;
+	pentagon_props.position = { 0.f, 1.f, 0.f };
+	pentagon_props.meshes = { pentagon_shape->mesh() };
+	m_pentagon = engine::game_object::create(pentagon_props);
+	m_pentagon_pickup = pickup::create(pentagon_props);
+	m_pentagon_pickup->init();
 
 	m_game_objects.push_back(m_terrain);
 	m_game_objects.push_back(m_ball);
@@ -173,25 +196,62 @@ example_layer::example_layer()
 
 example_layer::~example_layer() {}
 
-void example_layer::on_update(const engine::timestep& time_step) 
+void example_layer::on_update(const engine::timestep& time_step)
 {
+
+	if (m_show_menu) {
+		// When Enter is pressed, remove the menu screen
+		if (engine::input::key_pressed(engine::key_codes::KEY_ENTER)) {
+			m_show_menu = false;
+		}
+		return; // Skip the rest of the update if the menu is active
+	}
+
     m_3d_camera.on_update(time_step);
 
 	m_physics_manager->dynamics_world_update(m_game_objects, double(time_step));
 
+	//m_mannequin->animated_mesh()->on_update(time_step);
+	m_player.on_update(time_step);
 	m_mannequin->animated_mesh()->on_update(time_step);
+	m_player.update_camera(m_3d_camera);
+
+	m_zombie->animated_mesh()->on_update(time_step);
 
 	m_audio_manager->update_with_camera(m_3d_camera);
 
-	m_pickup->update(m_3d_camera.position(), time_step);
+	m_pickup->update(m_player.position(), time_step);
+
+	// Update the pentagon pickup
+	m_pentagon_pickup->update(m_player.position(), time_step);
 
 	check_bounce();
+
+	update_ground_positions();
 } 
 
 void example_layer::on_render() 
 {
     engine::render_command::clear_color({0.2f, 0.3f, 0.3f, 1.0f}); 
     engine::render_command::clear();
+
+	if (m_show_menu) {
+		// Render the menu background
+		engine::render_command::clear_color({ 0.0f, 0.0f, 0.0f, 1.0f });
+		engine::render_command::clear();
+
+		// Render the menu text
+		const auto text_shader = engine::renderer::shaders_library()->get("text_2D");
+		m_text_manager->render_text(text_shader, "Zombie Defence",
+			engine::application::window().width() / 2.0f - 200.0f,
+			engine::application::window().height() / 2.0f,
+			1.0f, glm::vec4(1.f, 1.f, 1.f, 1.f));
+		m_text_manager->render_text(text_shader, "Press Enter to Start",
+			engine::application::window().width() / 2.0f - 150.0f,
+			engine::application::window().height() / 2.0f - 50.0f,
+			0.5f, glm::vec4(1.f, 1.f, 1.f, 1.f));
+		return; // Skip the rest of the rendering if the menu is active
+	}
 
 	// Set up  shader. (renders textures and materials)
 	const auto mesh_shader = engine::renderer::shaders_library()->get("mesh");
@@ -217,7 +277,6 @@ void example_layer::on_render()
 	tree_transform = glm::rotate(tree_transform, m_tree->rotation_amount(), m_tree->rotation_axis());
 	tree_transform = glm::scale(tree_transform, m_tree->scale());
 	engine::renderer::submit(mesh_shader, tree_transform, m_tree);
-
 	//Render a row of trees using a loop
 	for (int i = 0; i < 5; i++)
 	{
@@ -255,6 +314,15 @@ void example_layer::on_render()
 	cow_transform2 = glm::scale(cow_transform2, m_cow->scale());
 	engine::renderer::submit(mesh_shader, cow_transform2, m_cow);
 	
+	//Render the 3d pentagon object
+	if (m_pentagon_pickup->active()) {
+		glm::mat4 pentagon_pickup_transform(1.0f);
+		pentagon_pickup_transform = glm::translate(pentagon_pickup_transform, m_pentagon_pickup->position());
+		pentagon_pickup_transform = glm::rotate(pentagon_pickup_transform, m_pentagon_pickup->rotation_amount(), m_pentagon_pickup->rotation_axis());
+		//engine::renderer::submit(mesh_shader, m_pentagon);
+		engine::renderer::submit(mesh_shader, m_pentagon->meshes().at(0), pentagon_pickup_transform);
+
+	}
 
 	//Render the pickup object
 	if (m_pickup->active()) {
@@ -267,16 +335,16 @@ void example_layer::on_render()
 		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("has_texture", false);
 	}
 
-	//Render the tetrahedron object
-	m_tetrahedron_material->submit(mesh_shader);
-	engine::renderer::submit(mesh_shader, m_tetrahedron);
-
-
 	m_material->submit(mesh_shader);
 	engine::renderer::submit(mesh_shader, m_ball);
 
 	m_mannequin_material->submit(mesh_shader);
-	engine::renderer::submit(mesh_shader, m_mannequin);
+	engine::renderer::submit(mesh_shader, m_player.object());
+	//engine::renderer::submit(mesh_shader, m_mannequin);
+
+	// Render the zombie
+	m_zombie_material->submit(mesh_shader);
+	engine::renderer::submit(mesh_shader, m_zombie);
 
     engine::renderer::end_scene();
 
@@ -303,4 +371,14 @@ void example_layer::check_bounce()
 		//m_audio_manager->play("bounce");
 		m_audio_manager->play_spatialised_sound("bounce", m_3d_camera.position(), glm::vec3(m_ball->position().x, 0.f, m_ball->position().z));
 	m_prev_sphere_y_vel = m_game_objects.at(1)->velocity().y;
+}
+
+void example_layer::update_ground_positions()
+{
+	m_mannequin->set_position(glm::vec3(m_mannequin->position().x, m_heightmap->ground_height(m_mannequin->position()), m_mannequin->position().z));
+	m_zombie->set_position(glm::vec3(m_zombie->position().x, m_heightmap->ground_height(m_zombie->position()), m_zombie->position().z));
+	m_cow->set_position(glm::vec3(m_cow->position().x, m_heightmap->ground_height(m_cow->position()), m_cow->position().z));
+	m_tree->set_position(glm::vec3(m_tree->position().x, m_heightmap->ground_height(m_tree->position()), m_tree->position().z));
+	m_pentagon_pickup->set_position(glm::vec3(m_pentagon_pickup->position().x, m_heightmap->ground_height(m_pentagon_pickup->position()), m_pentagon_pickup->position().z));
+	m_pickup->set_position(glm::vec3(m_pickup->position().x, m_heightmap->ground_height(m_pickup->position()), m_pickup->position().z));
 }

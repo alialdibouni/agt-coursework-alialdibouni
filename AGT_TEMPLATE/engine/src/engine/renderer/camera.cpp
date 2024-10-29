@@ -90,8 +90,9 @@ engine::perspective_camera::perspective_camera(
 
 void engine::perspective_camera::on_update(const timestep& timestep)
 {
-    auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
-	process_mouse(mouse_delta_x, mouse_delta_y);
+    //Enable / Disable Mouse movement for Camera
+   // auto [mouse_delta_x, mouse_delta_y] = input::mouse_position();
+	//process_mouse(mouse_delta_x, mouse_delta_y);
 
 	update_camera_vectors();
 
@@ -196,7 +197,7 @@ void engine::perspective_camera::rotate(e_rotation rotation, e_axis rotation_axi
 
 void engine::perspective_camera::update_view_matrix() 
 { 
-    //glm::mat4 transform{1}; 
+    glm::mat4 transform{1}; 
     //transform = glm::rotate(transform, glm::radians(m_rotation_angle.x), {1,0,0}); 
     //transform = glm::rotate(transform, glm::radians(m_rotation_angle.y), {0,1,0}); 
     //transform = glm::rotate(transform, glm::radians(m_rotation_angle.z), {0,0,1}); 
@@ -204,11 +205,17 @@ void engine::perspective_camera::update_view_matrix()
 
     // inverting the transform matrix  
     //m_view_mat = glm::inverse(transform); 
-	//m_view_mat = glm::lookAt(m_position, m_position + m_front_vector, m_up_vector); //Free camera
-	//m_position = glm::vec3(0.f, 20.f, 0.f); //directional light changed and positioned at the top
-	m_position = glm::vec3(0.f, 20.f, 0.f); //directional light changed and positioned at the top
-    m_view_mat = glm::lookAt(glm::vec3(0.f, 20.f, 0.f), glm::vec3(0.1f, 0.f, 0.f), glm::vec3(1.f, 0.0f, 0.f)); //Top view camera
-    m_view_projection_mat = m_projection_mat * m_view_mat; 
+    // 
+	m_view_mat = glm::lookAt(m_position, m_position + m_front_vector, m_up_vector); //Free camera
+	
+    //m_position = glm::vec3(0.f, 20.f, 0.f); //directional light changed and positioned at the top
+	//m_view_mat = glm::lookAt(glm::vec3(0.f, 20.f, 0.f), glm::vec3(0.1f, 0.f, 0.f), glm::vec3(1.f, 0.0f, 0.f)); //Top view camera
+
+	//m_view_mat = glm::lookAt(glm::vec3(0.f, 10.f, 10.f), //Camera position x=0, y=10, z=10. Camera position 10 units above the ground in the Y and Z axis
+	//	                     glm::vec3(0.1f, 0.f, -2.f), //Angles the camera directed towards coordinates x=0.1, y=0, z=-2. Offset in the x axis (0.1) and -z axis (-2) angling the camera
+     //                        glm::vec3(0.f, 0.f, -1.f)); // Points the camera along the -z axis
+    
+    m_view_projection_mat = m_projection_mat * m_view_mat;
 }
 
 void engine::perspective_camera::set_view_matrix(glm::vec3 position, glm::vec3 look_at)

@@ -1365,7 +1365,7 @@
     <ClInclude Include="src\platform\windows\win_window.h">
       <Filter>src\platform\windows</Filter>
     </ClInclude>
-    <ClInclude Include="src\engine\entities\shapes\tetrahedron.h">
+    <ClInclude Include="src\engine\entities\shapes\pentagon.h">
       <Filter>src\engine\entities\shapes</Filter>
     </ClInclude>
   </ItemGroup>
@@ -1496,7 +1496,7 @@
     <ClCompile Include="src\platform\windows\win_window.cpp">
       <Filter>src\platform\windows</Filter>
     </ClCompile>
-    <ClCompile Include="src\engine\entities\shapes\tetrahedron.cpp">
+    <ClCompile Include="src\engine\entities\shapes\pentagon.cpp">
       <Filter>src\engine\entities\shapes</Filter>
     </ClCompile>
   </ItemGroup>

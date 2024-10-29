@@ -16,7 +16,7 @@ void pickup::update(glm::vec3 c, float dt)
 	set_rotation_amount(rotation_amount() + dt * 1.5f);
 
 	glm::vec3 d = position() - c;
-	if (glm::length(d) < 1.0f)
+	if (glm::length(d) < 1.3f)
 		m_is_active = false;
 }
 
