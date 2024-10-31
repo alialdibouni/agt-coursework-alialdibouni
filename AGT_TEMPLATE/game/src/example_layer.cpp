@@ -117,8 +117,9 @@ example_layer::example_layer()
 	terrain_props.restitution = 0.92f;
 	m_terrain = engine::game_object::create(terrain_props);*/
 
-
-	m_heightmap = engine::heightmap::create("assets/textures/heightmap.jpg", "assets/textures/Terrain.bmp", 100.f, 100.f, glm::vec3(0.f, 0.f, 0.f), 10.f);
+	// Heightmap generated from https://manticorp.github.io/unrealheightmap/index.html#latitude/27.99440141104617/longitude/86.923828125/zoom/11/outputzoom/14/width/512/height/512 (Not actual location)
+	// Terrrain texture from https://architextures.org/textures/3208 (Subject to change)
+	m_heightmap = engine::heightmap::create("assets/textures/heightmap.jpg", "assets/textures/dirttexture.jpeg", 100.f, 100.f, glm::vec3(0.f, 0.f, 0.f), 10.f);
 	engine::game_object_properties terrain_props;
 	terrain_props.meshes = { m_heightmap->mesh() };
 	terrain_props.textures = { m_heightmap->texture() };
