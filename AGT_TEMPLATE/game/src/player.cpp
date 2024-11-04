@@ -73,7 +73,7 @@ void player::turn(float angle)
 
 void player::attack()
 {
-	const int animationFpsRate = 30;
+	const int animationFpsRate = 60;
 	m_object->animated_mesh()->switch_root_movement(true);
 	m_object->animated_mesh()->switch_animation(0);
 	m_speed = 0.0f;

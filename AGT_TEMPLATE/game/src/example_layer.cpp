@@ -162,8 +162,6 @@ example_layer::example_layer()
 	sphere_props.mass = 0.000001f;
 	m_ball = engine::game_object::create(sphere_props);
 
-	
-
 	// Medkit texture from https://www.textures.com/download/manmadeboxes0007/105116
 	engine::ref<engine::cuboid> pickup_shape = engine::cuboid::create(glm::vec3(0.5f), false);
 	engine::ref<engine::texture_2d> pickup_texture = engine::texture_2d::create("assets/textures/medkit.jpg", true);
@@ -276,14 +274,14 @@ void example_layer::on_render()
 
 	//Render the Tree object
 	glm::mat4 tree_transform(1.0f);
-	tree_transform = glm::translate(tree_transform, glm::vec3(4.f, 0.5, -5.0f));
+	tree_transform = glm::translate(tree_transform, m_tree->position());
 	tree_transform = glm::rotate(tree_transform, m_tree->rotation_amount(), m_tree->rotation_axis());
 	tree_transform = glm::scale(tree_transform, m_tree->scale());
 	engine::renderer::submit(mesh_shader, tree_transform, m_tree);
 	//Render a row of trees using a loop
 	for (int i = 0; i < 5; i++)
 	{
-		tree_transform = glm::translate(tree_transform, glm::vec3(0.f, 0.f, -2.f));
+		tree_transform = glm::translate(tree_transform, glm::vec3(0.f, 0.f, -10.f));
 		engine::renderer::submit(mesh_shader, tree_transform, m_tree);
 	}
 	
@@ -323,18 +321,19 @@ void example_layer::on_render()
 		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("has_texture", true);
 		m_pickup->textures().at(0)->bind();
 		glm::mat4 pickup_transform(1.0f);
-		pickup_transform = glm::translate(pickup_transform, m_pickup->position());
+		pickup_transform = glm::translate(pickup_transform, m_pickup->position() + glm::vec3(0.f, 1.f, 0.f));
 		pickup_transform = glm::rotate(pickup_transform, m_pickup->rotation_amount(), m_pickup->rotation_axis());
 		engine::renderer::submit(mesh_shader, m_pickup->meshes().at(0), pickup_transform);
 		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("has_texture", false);
 	}
 
+	//Seed a random number generator with the current time, whenever it's picked up, random generate number, updating position. Create new pickup and update position of new pickup
 	//Render the 3d pentagon object
 	if (m_pentagon_pickup->active()) {
 		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("has_texture", true);
 		m_pentagon_pickup->textures().at(0)->bind();
 		glm::mat4 pentagon_pickup_transform(1.0f);
-		pentagon_pickup_transform = glm::translate(pentagon_pickup_transform, m_pentagon_pickup->position());
+		pentagon_pickup_transform = glm::translate(pentagon_pickup_transform, m_pentagon_pickup->position() + glm::vec3(0.f, 1.f, 0.f));
 		pentagon_pickup_transform = glm::rotate(pentagon_pickup_transform, m_pentagon_pickup->rotation_amount(), m_pentagon_pickup->rotation_axis());
 		//engine::renderer::submit(mesh_shader, m_pentagon);
 		engine::renderer::submit(mesh_shader, m_pentagon->meshes().at(0), pentagon_pickup_transform);
@@ -387,4 +386,5 @@ void example_layer::update_ground_positions()
 	m_tree->set_position(glm::vec3(m_tree->position().x, m_heightmap->ground_height(m_tree->position()), m_tree->position().z));
 	m_pentagon_pickup->set_position(glm::vec3(m_pentagon_pickup->position().x, m_heightmap->ground_height(m_pentagon_pickup->position()), m_pentagon_pickup->position().z));
 	m_pickup->set_position(glm::vec3(m_pickup->position().x, m_heightmap->ground_height(m_pickup->position()), m_pickup->position().z));
+	//m_ball->set_position(glm::vec3(m_ball->position().x, m_heightmap->ground_height(m_ball->position()), m_ball->position().z));
 }
