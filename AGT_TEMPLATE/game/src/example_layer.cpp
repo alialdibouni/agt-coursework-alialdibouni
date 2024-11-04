@@ -176,9 +176,11 @@ example_layer::example_layer()
 
 	// Create a 3d pentagon object, set its properties
 	engine::ref<engine::pentagon> pentagon_shape = engine::pentagon::create(0.5f, 0.2f);
+	engine::ref<engine::texture_2d> pentagon_texture = engine::texture_2d::create("assets/textures/gold.jpg", true);
 	engine::game_object_properties pentagon_props;
 	pentagon_props.position = { 0.f, 1.f, 0.f };
 	pentagon_props.meshes = { pentagon_shape->mesh() };
+	pentagon_props.textures = { pentagon_texture };
 	m_pentagon = engine::game_object::create(pentagon_props);
 	m_pentagon_pickup = pickup::create(pentagon_props);
 	m_pentagon_pickup->init();
@@ -315,15 +317,6 @@ void example_layer::on_render()
 	cow_transform2 = glm::scale(cow_transform2, m_cow->scale());
 	engine::renderer::submit(mesh_shader, cow_transform2, m_cow);
 	
-	//Render the 3d pentagon object
-	if (m_pentagon_pickup->active()) {
-		glm::mat4 pentagon_pickup_transform(1.0f);
-		pentagon_pickup_transform = glm::translate(pentagon_pickup_transform, m_pentagon_pickup->position());
-		pentagon_pickup_transform = glm::rotate(pentagon_pickup_transform, m_pentagon_pickup->rotation_amount(), m_pentagon_pickup->rotation_axis());
-		//engine::renderer::submit(mesh_shader, m_pentagon);
-		engine::renderer::submit(mesh_shader, m_pentagon->meshes().at(0), pentagon_pickup_transform);
-
-	}
 
 	//Render the pickup object
 	if (m_pickup->active()) {
@@ -333,6 +326,18 @@ void example_layer::on_render()
 		pickup_transform = glm::translate(pickup_transform, m_pickup->position());
 		pickup_transform = glm::rotate(pickup_transform, m_pickup->rotation_amount(), m_pickup->rotation_axis());
 		engine::renderer::submit(mesh_shader, m_pickup->meshes().at(0), pickup_transform);
+		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("has_texture", false);
+	}
+
+	//Render the 3d pentagon object
+	if (m_pentagon_pickup->active()) {
+		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("has_texture", true);
+		m_pentagon_pickup->textures().at(0)->bind();
+		glm::mat4 pentagon_pickup_transform(1.0f);
+		pentagon_pickup_transform = glm::translate(pentagon_pickup_transform, m_pentagon_pickup->position());
+		pentagon_pickup_transform = glm::rotate(pentagon_pickup_transform, m_pentagon_pickup->rotation_amount(), m_pentagon_pickup->rotation_axis());
+		//engine::renderer::submit(mesh_shader, m_pentagon);
+		engine::renderer::submit(mesh_shader, m_pentagon->meshes().at(0), pentagon_pickup_transform);
 		std::dynamic_pointer_cast<engine::gl_shader>(mesh_shader)->set_uniform("has_texture", false);
 	}
 
