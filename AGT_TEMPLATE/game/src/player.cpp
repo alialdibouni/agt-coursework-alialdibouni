@@ -1,7 +1,8 @@
 #include <pch.h>
 #include "player.h"
+#include <algorithm>
 
-player::player() : m_animation_timer(0.0f), m_speed(0.0f)
+player::player() : m_animation_timer(0.0f), m_speed(0.0f), m_health(3)
 {
 	;
 }
@@ -78,4 +79,14 @@ void player::attack()
 	m_object->animated_mesh()->switch_animation(0);
 	m_speed = 0.0f;
 	m_animation_timer = m_object->animated_mesh()->animations().at(0)->mDuration / animationFpsRate;
+}
+
+int player::health() const
+{
+	return m_health;
+}
+
+void player::set_health(int health)
+{
+	m_health = std::max(0, health);
 }

@@ -19,9 +19,13 @@ public:
 
 	void attack();
 
+	int health() const;
+	void set_health(int health);
+
 private:
 	float m_speed{ 0.f };
 	float m_animation_timer;
+	int m_health;
 
 	engine::ref< engine::game_object> m_object;
 };
